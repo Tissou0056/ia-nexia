@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nexia Gui</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#15161c; --panel:#1c1d25; --panel2:#22232d; --line:rgba(255,255,255,.08);
+  --text:#eceef2; --muted:#8a8c9b; --accent:#ffb454; --accent-ink:#1a1305;
+  --err:#ff6b6b; --ok:#59d3a4;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--text);font-family:"IBM Plex Mono",monospace;font-size:14.5px}
+h1,h2,h3,.brand{font-family:"Space Grotesk",sans-serif}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:8px}
+
+.auth{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:28px;width:min(440px,100%)}
+.brand{font-size:22px;font-weight:700;margin:0 0 4px}
+.tag{color:var(--muted);font-size:13px;margin:0 0 22px}
+.field{width:100%;padding:11px 13px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);
+  outline:0;margin-top:10px}
+.field:focus{border-color:var(--accent)}
+.btn{width:100%;margin-top:16px;padding:11px;border-radius:9px;border:0;background:var(--accent);
+  color:var(--accent-ink);font-weight:600}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.6;cursor:default}
+.link{background:none;border:0;color:var(--accent);text-decoration:underline;padding:0;font-size:13px}
+.msg{min-height:16px;color:var(--err);font-size:12.5px;text-align:center;margin-top:10px}
+.switch{text-align:center;margin-top:16px;font-size:13px;color:var(--muted)}
+
+.app{min-height:100dvh;display:flex}
+.side{width:200px;flex:none;padding:20px 12px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.side .brand{padding:0 8px 22px;font-size:17px}
+.nav{text-align:left;padding:10px 12px;border-radius:9px;color:var(--muted);border:0;background:none;display:flex;gap:8px}
+.nav:hover{background:var(--panel2);color:var(--text)}
+.nav.active{background:var(--panel2);color:var(--accent)}
+.nav-out{margin-top:auto;color:var(--err)}
+.main{flex:1;padding:32px 40px;max-width:760px}
+.main h2{margin:0 0 6px}
+.hint{color:var(--muted);font-size:13px;margin:0 0 24px}
+.section-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:16px}
+label{display:block;font-size:12.5px;color:var(--muted);margin:14px 0 4px}
+label:first-child{margin-top:0}
+select.field{appearance:none}
+textarea.field{min-height:110px;resize:vertical}
+.row{display:flex;gap:10px;align-items:center}
+.pill{font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.pill.ok{color:var(--ok);border-color:var(--ok)}
+pre{background:#0f1015;border:1px solid var(--line);border-radius:10px;padding:16px;overflow:auto;
+  white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.55}
+.copybar{display:flex;justify-content:flex-end;margin-top:8px}
+.ghost{padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:none;color:var(--text);font-size:12.5px}
+.ghost:hover{background:var(--panel2)}
+ol.steps{margin:0;padding-left:20px;color:var(--muted);font-size:13px;line-height:1.7}
+ol.steps b{color:var(--text)}
+.spinner{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.2);
+  border-top-color:var(--accent);animation:spin .7s linear infinite;display:inline-block;vertical-align:-2px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head><body>
+
+<div id="auth" class="auth">
+  <div class="card">
+    <p class="brand">Nexia Gui</p>
+    <p class="tag">Assistant IA pour Roblox Studio — même compte ici et dans le plugin Roblox Studio.</p>
+    <label style="margin:0 0 -6px">URL de ton serveur</label>
+    <input id="serverUrl" class="field" placeholder="https://ton-serveur.onrender.com">
+    <p class="hint" style="margin:6px 0 0">Pas encore de serveur ? Onglet <b>Installation</b> après connexion — ou <button id="skipToInstall" class="link">voir comment en déployer un gratuitement</button>.</p>
+    <input id="email" class="field" placeholder="Adresse e-mail" autocomplete="email">
+    <input id="pass" class="field" type="password" placeholder="Mot de passe" autocomplete="current-password">
+    <button id="go" class="btn">Se connecter</button>
+    <div id="authMsg" class="msg"></div>
+    <div class="switch">
+      <span id="switchTxt">Pas encore de compte ?</span>
+      <button id="switchBtn" class="link">Créer un compte</button>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+  <div class="side">
+    <p class="brand">Nexia Gui</p>
+    <button class="nav active" data-p="generate">Générer un script</button>
+    <button class="nav" data-p="install">Installation</button>
+    <button class="nav" data-p="settings">Paramètres</button>
+    <button class="nav nav-out" id="logout">Déconnexion</button>
+  </div>
+  <div class="main" id="main"></div>
+</div>
+
+<script>
+const LS=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
+const SV=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const $=id=>document.getElementById(id);
+let mode='login';
+
+/* ---------- URL du serveur : saisie une fois, gardée dans ce navigateur ---------- */
+function getServerUrl(){return (localStorage.getItem('nx_server')||'').replace(/\/+$/,'')}
+function setServerUrl(u){localStorage.setItem('nx_server',(u||'').trim().replace(/\/+$/,''))}
+$('serverUrl').value=getServerUrl();
+
+/* ---------- fournisseurs d'IA supportés (juste pour l'UI : les clés/appels restent côté serveur) ---------- */
+const PROVIDERS=[
+  {id:'free',      name:'Gratuit (sans clé)', noKey:true},
+  {id:'anthropic', name:'Anthropic (Claude)'},
+  {id:'openai',    name:'OpenAI (GPT)'},
+  {id:'gemini',    name:'Google (Gemini)'},
+  {id:'mistral',   name:'Mistral'},
+  {id:'groq',      name:'Groq (Llama)'},
+  {id:'xai',       name:'xAI (Grok)'},
+  {id:'deepseek',  name:'DeepSeek'},
+];
+
+/* ---------- auth : vrai serveur, compte partagé avec le plugin Roblox Studio ---------- */
+function authHeaders(){return {authorization:'Bearer '+(localStorage.getItem('nx_token')||'')}}
+
+$('switchBtn').onclick=()=>{mode=mode==='login'?'signup':'login';
+  $('go').textContent=mode==='login'?'Se connecter':'Créer le compte';
+  $('switchTxt').textContent=mode==='login'?'Pas encore de compte ?':'Déjà un compte ?';
+  $('switchBtn').textContent=mode==='login'?'Créer un compte':'Se connecter';
+  $('authMsg').textContent='';};
+
+$('skipToInstall').onclick=(e)=>{e.preventDefault();
+  $('authMsg').textContent="Crée d'abord un compte une fois ton serveur déployé — l'onglet Installation (avec les instructions) est dans le menu une fois connecté. En attendant, laisse le champ serveur vide n'importe où, connecte-toi plus tard.";
+};
+
+$('go').onclick=async()=>{
+  const serverUrl=($('serverUrl').value||'').trim();
+  const email=($('email').value||'').trim().toLowerCase(), pass=$('pass').value||'';
+  if(!serverUrl){$('authMsg').textContent="Indique l'URL de ton serveur (voir Installation une fois déployé).";return}
+  if(!email||!pass){$('authMsg').textContent='Renseigne un e-mail et un mot de passe.';return}
+  setServerUrl(serverUrl);
+  $('go').disabled=true;$('authMsg').textContent='';
+  try{
+    const path=mode==='signup'?'/api/register':'/api/login';
+    const r=await fetch(getServerUrl()+path,{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({email,password:pass})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Connexion impossible.');
+    localStorage.setItem('nx_token',d.token);
+    localStorage.setItem('nx_email',d.email);
+    enter();
+  }catch(e){
+    $('authMsg').textContent=e.message==='Failed to fetch'
+      ? "Serveur injoignable — vérifie l'URL, ou déploie-le d'abord (onglet Installation une fois connecté à un compte existant)."
+      : (e.message||'Erreur.');
+  }
+  $('go').disabled=false;
+};
+$('logout').onclick=()=>{localStorage.removeItem('nx_token');localStorage.removeItem('nx_email');location.reload()};
+
+function enter(){$('auth').classList.add('hidden');$('app').classList.remove('hidden');nav('generate')}
+(function init(){if(localStorage.getItem('nx_token')&&getServerUrl())enter()})();
+
+/* ---------- nav ---------- */
+document.querySelectorAll('.nav[data-p]').forEach(b=>b.onclick=()=>nav(b.dataset.p));
+function nav(page){
+  document.querySelectorAll('.nav[data-p]').forEach(b=>b.classList.toggle('active',b.dataset.p===page));
+  if(page==='settings')renderSettings();
+  else if(page==='install')renderInstall();
+  else renderGenerate();
+}
+
+/* ---------- installation (serveur + plugin, tout est dans CE fichier) ---------- */
+function renderInstall(){
+  $('main').innerHTML=`
+    <h2>Installation</h2>
+    <p class="hint">Tout est déjà dans ce fichier unique : ce site sait générer le serveur et le plugin Roblox Studio en téléchargement. Rien d'autre à récupérer ailleurs.</p>
+    <div class="section-card">
+      <b>1. Déployer le serveur (gratuit, sur Render)</b>
+      <ol class="steps" style="margin-top:10px">
+        <li>Télécharge <b>server.js</b> ci-dessous. Aucune dépendance à installer, juste ce seul fichier.</li>
+        <li>Crée un compte sur <b>github.com</b>, un nouveau dépôt, et dépose <b>server.js</b> dedans (glisser-déposer dans "Add file → Upload files").</li>
+        <li>Crée un compte sur <b>render.com</b> (aucune carte bancaire demandée) → <b>New → Web Service</b> → connecte ce dépôt.</li>
+        <li>Runtime : <b>Node</b>. Build Command : laisse vide (ou <code>echo ok</code>). Start Command : <code>node server.js</code>. Instance Type : <b>Free</b>.</li>
+        <li>Onglet <b>Environment</b> : ajoute deux variables avec des valeurs longues et aléatoires : <code>JWT_SECRET</code> et <code>ENCRYPTION_KEY</code>.</li>
+        <li>Clique <b>Deploy</b>. Render donne une URL du type <code>https://xxxxx.onrender.com</code> — c'est ce qu'il faut coller dans le champ "URL de ton serveur" sur l'écran de connexion.</li>
+      </ol>
+      <button id="dlServer" class="btn" style="margin-top:14px">Télécharger server.js</button>
+      <p class="hint" style="margin:10px 0 0">⚠️ Le plan gratuit n'a pas de disque persistant : les comptes survivent aux redémarrages normaux (le service s'endort après 15 min d'inactivité puis se réveille), mais peuvent repartir à zéro à un <b>nouveau déploiement</b> (un nouveau push). Pour quelque chose de durable, il faudrait brancher une vraie base de données.</p>
+    </div>
+    <div class="section-card">
+      <b>2. Installer le plugin Roblox Studio</b>
+      <ol class="steps" style="margin-top:10px">
+        <li>Télécharge <b>NexiaGui.lua</b> ci-dessous.</li>
+        <li>Dépose-le dans : Windows <code>%LOCALAPPDATA%\\Roblox\\Plugins</code> — Mac <code>~/Documents/Roblox/Plugins</code>.</li>
+        <li>Relance Roblox Studio, onglet <b>Plugins</b> → bouton <b>Nexia Gui</b>.</li>
+        <li>Colle la même URL de serveur, puis connecte-toi avec le même e-mail/mot de passe que sur ce site — c'est le même compte.</li>
+      </ol>
+      <button id="dlPlugin" class="btn" style="margin-top:14px">Télécharger NexiaGui.lua</button>
+    </div>
+    <div class="section-card">
+      <b>À propos des comptes</b>
+      <p class="hint" style="margin:8px 0 0">Le site et le plugin Roblox Studio parlent au même serveur : c'est un vrai compte unique (inscription/connexion vérifiées côté serveur), pas juste deux mots de passe identiques enregistrés chacun de leur côté. Le fournisseur d'IA choisi et la clé API sont aussi partagés automatiquement entre les deux.</p>
+    </div>`;
+  $('dlServer').onclick=()=>{
+    const blob=new Blob([SERVER_JS_SOURCE],{type:'text/javascript'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='server.js';a.click();
+  };
+  $('dlPlugin').onclick=()=>{
+    const blob=new Blob([PLUGIN_LUA_SOURCE],{type:'text/plain'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='NexiaGui.lua';a.click();
+  };
+}
+
+/* ---------- settings ---------- */
+async function renderSettings(){
+  $('main').innerHTML=`
+    <h2>Paramètres</h2>
+    <p class="hint">Le fournisseur et la clé API choisis ici sont enregistrés sur le serveur (clé chiffrée) et partagés avec le plugin Roblox Studio — pas besoin de les ressaisir là-bas. Le fournisseur "Gratuit" ne demande aucune clé.</p>
+    <div class="section-card">
+      <label>Fournisseur</label>
+      <select id="provider" class="field">
+        ${PROVIDERS.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}
+      </select>
+      <label id="keyLabel">Clé API</label>
+      <input id="apikey" class="field" type="password" placeholder="Colle ta clé API">
+      <div class="row" style="margin-top:16px">
+        <button id="saveCfg" class="btn" style="margin-top:0">Enregistrer</button>
+        <span id="cfgMsg" class="pill"></span>
+      </div>
+    </div>
+    <div class="section-card">
+      <b>Serveur</b>
+      <p class="hint" style="margin:8px 0 10px">${escapeHtml(getServerUrl())||'(aucun)'}</p>
+      <input id="serverUrl2" class="field" placeholder="https://ton-serveur.onrender.com" value="${escapeHtml(getServerUrl())}">
+      <button id="saveServer" class="btn" style="margin-top:10px">Mettre à jour</button>
+    </div>`;
+  const syncKeyField=()=>{
+    const p=PROVIDERS.find(p=>p.id===$('provider').value);
+    $('apikey').disabled=!!p.noKey;
+    $('apikey').placeholder=p.noKey?'Pas besoin de clé pour ce fournisseur':'Colle ta clé API';
+    $('keyLabel').textContent=p.noKey?'Clé API (non requise)':'Clé API';
+  };
+  syncKeyField();$('provider').onchange=syncKeyField;
+
+  try{
+    const r=await fetch(getServerUrl()+'/api/settings',{headers:authHeaders()});
+    const d=await r.json();
+    if(r.ok){
+      $('provider').value=d.provider;syncKeyField();
+      if(d.hasKey && d.hasKey[d.provider])$('apikey').placeholder='Clé déjà enregistrée (laisse vide pour la garder)';
+    }
+  }catch(e){/* serveur injoignable : on laisse le formulaire vide, l'enregistrement le signalera */}
+
+  $('saveCfg').onclick=async()=>{
+    const provider=$('provider').value, apiKey=$('apikey').value.trim();
+    $('saveCfg').disabled=true;$('cfgMsg').textContent='';
+    try{
+      const r=await fetch(getServerUrl()+'/api/settings',{method:'POST',
+        headers:{...authHeaders(),'content-type':'application/json'},
+        body:JSON.stringify({provider,apiKey})});
+      const d=await r.json();
+      if(!r.ok)throw new Error(d.error||'Erreur serveur');
+      $('cfgMsg').textContent='Enregistré';$('cfgMsg').className='pill ok';
+      $('apikey').value='';
+      setTimeout(()=>{$('cfgMsg').textContent='';$('cfgMsg').className='pill'},1800);
+    }catch(e){
+      $('cfgMsg').textContent=e.message||'Erreur';$('cfgMsg').className='pill';
+    }
+    $('saveCfg').disabled=false;
+  };
+  $('saveServer').onclick=()=>{setServerUrl($('serverUrl2').value);renderSettings();};
+}
+
+/* ---------- generate ---------- */
+function renderGenerate(){
+  $('main').innerHTML=`
+    <h2>Générer un script</h2>
+    <p class="hint">Décris ce que le script doit faire. Le résultat est un script Lua prêt à coller dans Roblox Studio.</p>
+    <div class="section-card">
+      <label>Description</label>
+      <textarea id="prompt" class="field" placeholder="Ex : une porte qui s'ouvre quand un joueur s'approche, avec un son"></textarea>
+      <div class="row" style="margin-top:14px">
+        <button id="run" class="btn" style="margin-top:0">Générer</button>
+        <span id="genMsg" class="pill"></span>
+      </div>
+    </div>
+    <div id="out"></div>`;
+  $('run').onclick=runGenerate;
+}
+async function runGenerate(){
+  const prompt=($('prompt').value||'').trim();
+  if(!prompt){$('genMsg').textContent='Décris le script à générer';return}
+  $('run').disabled=true;$('genMsg').innerHTML='<span class="spinner"></span>Génération…';$('genMsg').className='pill';
+  try{
+    const r=await fetch(getServerUrl()+'/api/generate',{method:'POST',
+      headers:{...authHeaders(),'content-type':'application/json'},
+      body:JSON.stringify({prompt})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Erreur serveur');
+    $('out').innerHTML=`<div class="section-card"><pre id="code">${escapeHtml(d.code)}</pre>
+      <div class="copybar"><button class="ghost" id="copyBtn">Copier</button></div></div>`;
+    $('copyBtn').onclick=()=>navigator.clipboard.writeText(d.code);
+    $('genMsg').textContent='';
+  }catch(e){
+    $('genMsg').textContent='Erreur : '+(e.message||'serveur injoignable.');
+  }
+  $('run').disabled=false;
+}
+
+function escapeHtml(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+/* ---------- code source du plugin Roblox Studio et du serveur, embarqués ici pour téléchargement ---------- */
+const PLUGIN_LUA_SOURCE="--[[\n  Nexia Gui \u2014 plugin Roblox Studio\n  Installation : copie ce fichier dans le dossier des plugins locaux de Studio\n    Windows : %LOCALAPPDATA%\\Roblox\\Plugins\n    Mac     : ~/Documents/Roblox/Plugins\n  Relance Roblox Studio. Un bouton \"Nexia Gui\" appara\u00eet dans l'onglet Plugins.\n\n  Fonctionnement :\n  - \u00c9cran de connexion : indique l'URL de ton serveur (une fois, elle reste enregistr\u00e9e sur\n    cette machine) puis connecte-toi avec le m\u00eame e-mail/mot de passe que sur le site \u2014 c'est\n    un vrai compte partag\u00e9, v\u00e9rifi\u00e9 par ce serveur.\n  - Une fois connect\u00e9 : choisis un fournisseur d'IA, colle ta cl\u00e9 API (elle est envoy\u00e9e une\n    fois au serveur, chiffr\u00e9e, puis n'est plus jamais renvoy\u00e9e au client), d\u00e9cris ce que tu\n    veux faire.\n  - Nexia demande au serveur de g\u00e9n\u00e9rer un script Lua, puis l'EX\u00c9CUTE DIRECTEMENT dans ton\n    fichier Roblox (via loadstring) : les actions demand\u00e9es (cr\u00e9er des objets, \u00e9crire des\n    scripts, modifier des propri\u00e9t\u00e9s...) sont appliqu\u00e9es tout de suite, comme si tu les avais\n    faites toi-m\u00eame.\n    -> Comme le code s'ex\u00e9cute automatiquement, relis toujours ce qui a \u00e9t\u00e9 g\u00e9n\u00e9r\u00e9 (affich\u00e9\n    dans le panneau) avant de continuer \u00e0 travailler, surtout sur un fichier important.\n]]\n\nlocal HttpService = game:GetService(\"HttpService\")\n\nlocal toolbar = plugin:CreateToolbar(\"Nexia Gui\")\nlocal button = toolbar:CreateButton(\"Nexia Gui\", \"Assistant IA pour Roblox Studio\", \"\")\n\nlocal widgetInfo = DockWidgetPluginGuiInfo.new(\n  Enum.InitialDockState.Right, false, false, 340, 500, 300, 340\n)\nlocal widget = plugin:CreateDockWidgetPluginGui(\"NexiaGui\", widgetInfo)\nwidget.Title = \"Nexia Gui\"\n\n-- ===== fournisseurs support\u00e9s (juste pour l'UI : les appels r\u00e9els se font c\u00f4t\u00e9 serveur) =====\nlocal PROVIDERS = {\n  { id = \"free\",       name = \"Gratuit (sans cl\u00e9)\", noKey = true },\n  { id = \"anthropic\",  name = \"Anthropic (Claude)\" },\n  { id = \"openai\",     name = \"OpenAI (GPT)\" },\n  { id = \"gemini\",     name = \"Google (Gemini)\" },\n  { id = \"mistral\",    name = \"Mistral\" },\n  { id = \"groq\",       name = \"Groq (Llama)\" },\n  { id = \"xai\",        name = \"xAI (Grok)\" },\n  { id = \"deepseek\",   name = \"DeepSeek\" },\n}\n\n-- ===== base UI =====\nlocal root = Instance.new(\"Frame\")\nroot.Size = UDim2.fromScale(1,1)\nroot.BackgroundColor3 = Color3.fromRGB(21,22,28)\nroot.Parent = widget\n\nlocal function clearRoot()\n  for _,c in ipairs(root:GetChildren()) do c:Destroy() end\nend\n\nlocal function pad12(parent)\n  local p = Instance.new(\"UIPadding\")\n  p.PaddingTop = UDim.new(0,12); p.PaddingBottom = UDim.new(0,12)\n  p.PaddingLeft = UDim.new(0,12); p.PaddingRight = UDim.new(0,12)\n  p.Parent = parent\nend\n\nlocal function listLayout(parent, gap)\n  local l = Instance.new(\"UIListLayout\")\n  l.SortOrder = Enum.SortOrder.LayoutOrder\n  l.Padding = UDim.new(0, gap or 8)\n  l.Parent = parent\n  return l\nend\n\nlocal function label(parent, text, order, color)\n  local l = Instance.new(\"TextLabel\")\n  l.Text = text\n  l.Font = Enum.Font.Code\n  l.TextSize = 13\n  l.TextColor3 = color or Color3.fromRGB(140,142,155)\n  l.TextXAlignment = Enum.TextXAlignment.Left\n  l.TextWrapped = true\n  l.BackgroundTransparency = 1\n  l.Size = UDim2.new(1,0,0,16)\n  l.LayoutOrder = order\n  l.Parent = parent\n  return l\nend\n\nlocal function field(parent, placeholder, multiline, order, height)\n  local t = Instance.new(\"TextBox\")\n  t.PlaceholderText = placeholder\n  t.Text = \"\"\n  t.ClearTextOnFocus = false\n  t.MultiLine = multiline or false\n  t.TextWrapped = true\n  t.Font = Enum.Font.Code\n  t.TextSize = 13\n  t.TextColor3 = Color3.fromRGB(236,238,242)\n  t.PlaceholderColor3 = Color3.fromRGB(110,112,125)\n  t.BackgroundColor3 = Color3.fromRGB(34,35,45)\n  t.TextXAlignment = Enum.TextXAlignment.Left\n  t.TextYAlignment = Enum.TextYAlignment.Top\n  t.Size = UDim2.new(1,0,0,height or 32)\n  t.LayoutOrder = order\n  t.Parent = parent\n  return t\nend\n\nlocal function bigBtn(parent, text, order, color, textColor)\n  local b = Instance.new(\"TextButton\")\n  b.Size = UDim2.new(1,0,0,34)\n  b.BackgroundColor3 = color or Color3.fromRGB(255,180,84)\n  b.TextColor3 = textColor or Color3.fromRGB(26,19,5)\n  b.Font = Enum.Font.SourceSansBold\n  b.TextSize = 14\n  b.Text = text\n  b.LayoutOrder = order\n  b.Parent = parent\n  return b\nend\n\n-- ===================== appels au serveur =====================\nlocal function getServerUrl()\n  local u = plugin:GetSetting(\"nexia_server_url\")\n  if not u then return nil end\n  return (u:gsub(\"/+$\", \"\")) -- retire un \u00e9ventuel \"/\" final\nend\nlocal function getToken()\n  return plugin:GetSetting(\"nexia_token\")\nend\nlocal function getAccount()\n  return plugin:GetSetting(\"nexia_account\")\nend\n\n-- method: \"GET\"/\"POST\" ; path: ex \"/api/generate\" ; bodyTable: table ou nil ; withAuth: bool\n-- retourne ok(bool), data(table), errMsg(string)\nlocal function serverRequest(method, path, bodyTable, withAuth)\n  local base = getServerUrl()\n  if not base or base == \"\" then\n    return false, nil, \"Indique d'abord l'URL de ton serveur.\"\n  end\n  local headers = { [\"content-type\"] = \"application/json\" }\n  if withAuth then headers[\"authorization\"] = \"Bearer \" .. tostring(getToken() or \"\") end\n  local body = bodyTable and HttpService:JSONEncode(bodyTable) or nil\n\n  local ok, res = pcall(function()\n    return HttpService:RequestAsync({\n      Url = base .. path,\n      Method = method,\n      Headers = headers,\n      Body = body,\n    })\n  end)\n  if not ok then\n    return false, nil, \"Serveur injoignable : \" .. tostring(res)\n  end\n  local dok, data = pcall(HttpService.JSONDecode, HttpService, res.Body)\n  if not res.Success then\n    local msg = (dok and data and data.error) or (\"Erreur HTTP \" .. tostring(res.StatusCode))\n    return false, nil, msg\n  end\n  return true, (dok and data or {}), nil\nend\n\n-- ===================== \u00c9CRAN DE CONNEXION =====================\nlocal function showLogin()\n  clearRoot()\n  pad12(root)\n  listLayout(root, 8)\n\n  label(root, \"Nexia Gui\", 1, Color3.fromRGB(255,180,84)).TextSize = 18\n  label(root, \"URL de ton serveur (celle donn\u00e9e par ton h\u00e9bergeur)\", 2)\n  local serverBox = field(root, \"https://ton-serveur.onrender.com\", false, 3, 32)\n  serverBox.Text = getServerUrl() or \"\"\n\n  label(root, \"Connecte-toi avec le m\u00eame e-mail/mot de passe que sur le site.\", 4)\n  local emailBox = field(root, \"Adresse e-mail\", false, 5, 32)\n  local passBox = field(root, \"Mot de passe\", false, 6, 32)\n\n  local status = label(root, \"\", 7, Color3.fromRGB(255,107,107))\n  local loginBtn = bigBtn(root, \"Se connecter\", 8)\n\n  loginBtn.MouseButton1Click:Connect(function()\n    local serverUrl = serverBox.Text:gsub(\"/+$\", \"\")\n    local email, pass = emailBox.Text, passBox.Text\n    if serverUrl == \"\" then status.Text = \"Indique l'URL de ton serveur.\"; return end\n    if email == \"\" or pass == \"\" then status.Text = \"Renseigne un e-mail et un mot de passe.\"; return end\n    plugin:SetSetting(\"nexia_server_url\", serverUrl)\n    status.Text = \"Connexion\u2026\"\n    loginBtn.Active = false\n\n    task.spawn(function()\n      -- un seul bouton : on tente une connexion, et si le compte n'existe pas encore\n      -- c\u00f4t\u00e9 serveur on le cr\u00e9e directement (m\u00eame logique que le site).\n      local body = { email = email, password = pass }\n      local ok, data, err = serverRequest(\"POST\", \"/api/login\", body, false)\n      if not ok then\n        ok, data, err = serverRequest(\"POST\", \"/api/register\", body, false)\n      end\n      loginBtn.Active = true\n      if not ok then\n        status.Text = err or \"Connexion impossible.\"\n        return\n      end\n      plugin:SetSetting(\"nexia_token\", data.token)\n      plugin:SetSetting(\"nexia_account\", data.email or email)\n      showMain()\n    end)\n  end)\nend\n\n-- ===================== \u00c9CRAN PRINCIPAL =====================\nfunction showMain()\n  clearRoot()\n  pad12(root)\n  listLayout(root, 8)\n\n  local topRow = Instance.new(\"Frame\")\n  topRow.Size = UDim2.new(1,0,0,20)\n  topRow.BackgroundTransparency = 1\n  topRow.LayoutOrder = 1\n  topRow.Parent = root\n  local title = Instance.new(\"TextLabel\")\n  title.Text = \"Connect\u00e9 \u2014 \" .. (getAccount() or \"\")\n  title.Font = Enum.Font.SourceSansBold\n  title.TextSize = 13\n  title.TextColor3 = Color3.fromRGB(236,238,242)\n  title.TextXAlignment = Enum.TextXAlignment.Left\n  title.BackgroundTransparency = 1\n  title.Size = UDim2.new(0.7,0,1,0)\n  title.Parent = topRow\n  local logoutBtn = Instance.new(\"TextButton\")\n  logoutBtn.Text = \"D\u00e9connexion\"\n  logoutBtn.Font = Enum.Font.Code\n  logoutBtn.TextSize = 11\n  logoutBtn.TextColor3 = Color3.fromRGB(255,107,107)\n  logoutBtn.BackgroundTransparency = 1\n  logoutBtn.Size = UDim2.new(0.3,0,1,0)\n  logoutBtn.Position = UDim2.new(0.7,0,0,0)\n  logoutBtn.Parent = topRow\n  logoutBtn.MouseButton1Click:Connect(function()\n    plugin:SetSetting(\"nexia_token\", nil)\n    plugin:SetSetting(\"nexia_account\", nil)\n    showLogin()\n  end)\n\n  local counterLbl = label(root, \"Demandes faites (compte) : \u2026\", 2)\n\n  label(root, \"Fournisseur\", 3)\n  local providerIndex = 1\n  local savedProvider = plugin:GetSetting(\"provider\")\n  for i, p in ipairs(PROVIDERS) do if p.id == savedProvider then providerIndex = i end end\n  local providerBtn = bigBtn(root, PROVIDERS[providerIndex].name, 4, Color3.fromRGB(34,35,45), Color3.fromRGB(236,238,242))\n\n  local keyLbl = label(root, \"Cl\u00e9 API de ce fournisseur\", 5)\n  local keyBox = field(root, \"Colle ta cl\u00e9 API\", false, 6, 32)\n  local function syncKeyField()\n    local p = PROVIDERS[providerIndex]\n    keyBox.Text = \"\"\n    keyBox.TextEditable = not p.noKey\n    keyLbl.Text = p.noKey and \"Cl\u00e9 API (non requise pour ce fournisseur)\" or \"Cl\u00e9 API de ce fournisseur\"\n    keyBox.PlaceholderText = p.noKey and \"Pas besoin de cl\u00e9\" or \"Colle ta cl\u00e9 API (laisse vide si d\u00e9j\u00e0 enregistr\u00e9e)\"\n  end\n  syncKeyField()\n  providerBtn.MouseButton1Click:Connect(function()\n    providerIndex = providerIndex % #PROVIDERS + 1\n    providerBtn.Text = PROVIDERS[providerIndex].name\n    plugin:SetSetting(\"provider\", PROVIDERS[providerIndex].id)\n    syncKeyField()\n  end)\n\n  label(root, \"Qu'est-ce que Nexia doit faire ?\", 7)\n  local promptBox = field(root, \"Ex : cr\u00e9e une porte qui s'ouvre quand un joueur s'approche\", true, 8, 70)\n\n  local genBtn = bigBtn(root, \"Faire l'action dans le jeu\", 9)\n  local status2 = label(root, \"\", 10)\n  local resultBox = field(root, \"Le code ex\u00e9cut\u00e9 appara\u00eetra ici\u2026\", true, 11, 130)\n  resultBox.TextEditable = false\n\n  -- r\u00e9cup\u00e8re le compteur de demandes et le fournisseur enregistr\u00e9s c\u00f4t\u00e9 serveur\n  task.spawn(function()\n    local ok, data = serverRequest(\"GET\", \"/api/me\", nil, true)\n    if ok then\n      counterLbl.Text = \"Demandes faites (compte) : \" .. tostring(data.requestCount or 0)\n    else\n      counterLbl.Text = \"Demandes faites (compte) : \u2014\"\n    end\n  end)\n\n  genBtn.MouseButton1Click:Connect(function()\n    local pinfo = PROVIDERS[providerIndex]\n    local provider = pinfo.id\n    local key = keyBox.Text\n    local prompt = promptBox.Text\n    if prompt == \"\" then status2.Text = \"D\u00e9cris ce que tu veux faire.\"; return end\n    status2.Text = \"Nexia r\u00e9fl\u00e9chit\u2026\"\n    genBtn.Active = false\n\n    task.spawn(function()\n      if key ~= \"\" then\n        serverRequest(\"POST\", \"/api/settings\", { provider = provider, apiKey = key }, true)\n      else\n        serverRequest(\"POST\", \"/api/settings\", { provider = provider }, true)\n      end\n\n      local ok, data, err = serverRequest(\"POST\", \"/api/generate\", { prompt = prompt }, true)\n      genBtn.Active = true\n      if not ok then\n        status2.Text = \"Erreur : \" .. tostring(err)\n        return\n      end\n      local code = data.code or \"\"\n      code = code:gsub(\"^```lua\", \"\"):gsub(\"^```\", \"\"):gsub(\"```$\", \"\")\n      resultBox.Text = code\n      local fn, compileErr = loadstring(code)\n      if not fn then\n        status2.Text = \"Code g\u00e9n\u00e9r\u00e9 invalide : \" .. tostring(compileErr)\n        return\n      end\n      local runOk, runErr = pcall(fn)\n      if runOk and data.requestCount then\n        counterLbl.Text = \"Demandes faites (compte) : \" .. tostring(data.requestCount)\n      end\n      status2.Text = runOk and \"Fait.\" or (\"Erreur \u00e0 l'ex\u00e9cution : \" .. tostring(runErr))\n    end)\n  end)\nend\n\n-- ===================== d\u00e9marrage =====================\nbutton.Click:Connect(function()\n  widget.Enabled = not widget.Enabled\nend)\n\nif getAccount() and getToken() and getServerUrl() then showMain() else showLogin() end\n";
+const SERVER_JS_SOURCE="// Nexia Gui \u2014 serveur\n// Aucune d\u00e9pendance externe : uniquement les modules int\u00e9gr\u00e9s de Node.js (http, crypto, fs).\n// Pas de \"npm install\" \u00e0 faire : la commande de d\u00e9marrage est juste \"node server.js\".\n//\n// Comptes partag\u00e9s entre le site et le plugin Roblox Studio : inscription/connexion avec\n// mot de passe hash\u00e9 (jamais stock\u00e9 en clair), fournisseur d'IA + cl\u00e9 API enregistr\u00e9s ici\n// (cl\u00e9 chiffr\u00e9e au repos), et c'est ce serveur qui appelle l'IA \u2014 la cl\u00e9 ne repart donc\n// jamais vers le navigateur ou Roblox Studio une fois enregistr\u00e9e.\n\nconst http = require('http');\nconst crypto = require('crypto');\nconst fs = require('fs');\nconst path = require('path');\n\nconst PORT = process.env.PORT || 3000;\nconst JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';\nconst ENC_KEY = crypto\n  .createHash('sha256')\n  .update(process.env.ENCRYPTION_KEY || 'dev-encryption-key-change-me')\n  .digest();\nconst DB_FILE = path.join(__dirname, 'db.json');\n\nif (!process.env.JWT_SECRET || !process.env.ENCRYPTION_KEY) {\n  console.warn(\n    \"[Nexia] JWT_SECRET / ENCRYPTION_KEY ne sont pas d\u00e9finies : des valeurs par d\u00e9faut non \" +\n      \"s\u00e9curis\u00e9es sont utilis\u00e9es. Ajoute-les dans les variables d'environnement de ton \" +\n      'h\u00e9bergeur avant de mettre \u00e7a en ligne pour de vrai.'\n  );\n}\n\n// ---------- stockage (fichier JSON local \u2014 suffisant pour un usage perso) ----------\nfunction loadDB() {\n  try {\n    return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));\n  } catch {\n    return { users: [] };\n  }\n}\nfunction saveDB() {\n  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));\n}\nlet db = loadDB();\nfunction findUser(email) {\n  return db.users.find((u) => u.email === email);\n}\n\n// ---------- mots de passe : scrypt (int\u00e9gr\u00e9 \u00e0 Node, pas besoin de bcrypt) ----------\nfunction hashPassword(password) {\n  const salt = crypto.randomBytes(16);\n  const hash = crypto.scryptSync(password, salt, 64);\n  return salt.toString('hex') + ':' + hash.toString('hex');\n}\nfunction verifyPassword(password, stored) {\n  const [saltHex, hashHex] = String(stored || '').split(':');\n  if (!saltHex || !hashHex) return false;\n  const salt = Buffer.from(saltHex, 'hex');\n  const hash = Buffer.from(hashHex, 'hex');\n  const test = crypto.scryptSync(password, salt, 64);\n  return hash.length === test.length && crypto.timingSafeEqual(hash, test);\n}\n\n// ---------- jetons de connexion : sign\u00e9s par HMAC (mini-JWT maison, pas de d\u00e9pendance) ----------\nfunction b64url(input) {\n  return Buffer.from(input).toString('base64').replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '');\n}\nfunction signToken(payload) {\n  const body = b64url(JSON.stringify({ ...payload, exp: Date.now() + 90 * 24 * 3600 * 1000 }));\n  const sig = b64url(crypto.createHmac('sha256', JWT_SECRET).update(body).digest());\n  return body + '.' + sig;\n}\nfunction verifyToken(token) {\n  const [body, sig] = String(token || '').split('.');\n  if (!body || !sig) return null;\n  const expected = b64url(crypto.createHmac('sha256', JWT_SECRET).update(body).digest());\n  if (sig !== expected) return null;\n  try {\n    const json = Buffer.from(body.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');\n    const data = JSON.parse(json);\n    if (!data.exp || data.exp < Date.now()) return null;\n    return data;\n  } catch {\n    return null;\n  }\n}\n\n// ---------- chiffrement des cl\u00e9s API au repos ----------\nfunction encrypt(text) {\n  const iv = crypto.randomBytes(12);\n  const cipher = crypto.createCipheriv('aes-256-gcm', ENC_KEY, iv);\n  const enc = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]);\n  const tag = cipher.getAuthTag();\n  return Buffer.concat([iv, tag, enc]).toString('base64');\n}\nfunction decrypt(data) {\n  const buf = Buffer.from(data, 'base64');\n  const iv = buf.subarray(0, 12);\n  const tag = buf.subarray(12, 28);\n  const enc = buf.subarray(28);\n  const decipher = crypto.createDecipheriv('aes-256-gcm', ENC_KEY, iv);\n  decipher.setAuthTag(tag);\n  return Buffer.concat([decipher.update(enc), decipher.final()]).toString('utf8');\n}\n\n// ---------- fournisseurs d'IA (appel\u00e9s depuis le serveur, jamais depuis le client) ----------\nconst PROVIDERS = ['free', 'anthropic', 'openai', 'gemini', 'mistral', 'groq', 'xai', 'deepseek'];\nconst OPENAI_COMPAT = {\n  openai: { url: 'https://api.openai.com/v1/chat/completions', model: 'gpt-4o-mini' },\n  mistral: { url: 'https://api.mistral.ai/v1/chat/completions', model: 'mistral-large-latest' },\n  groq: { url: 'https://api.groq.com/openai/v1/chat/completions', model: 'llama-3.3-70b-versatile' },\n  xai: { url: 'https://api.x.ai/v1/chat/completions', model: 'grok-2-latest' },\n  deepseek: { url: 'https://api.deepseek.com/chat/completions', model: 'deepseek-chat' },\n};\n\nasync function callFree(sys, prompt) {\n  const r = await fetch('https://text.pollinations.ai/openai', {\n    method: 'POST',\n    headers: { 'content-type': 'application/json' },\n    body: JSON.stringify({\n      model: 'openai',\n      messages: [\n        { role: 'system', content: sys },\n        { role: 'user', content: prompt },\n      ],\n    }),\n  });\n  const d = await r.json();\n  if (!r.ok) throw new Error(d.error?.message || 'Le service gratuit est momentan\u00e9ment indisponible.');\n  return d.choices?.[0]?.message?.content || '';\n}\nasync function callAnthropic(key, sys, prompt) {\n  const r = await fetch('https://api.anthropic.com/v1/messages', {\n    method: 'POST',\n    headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },\n    body: JSON.stringify({\n      model: 'claude-sonnet-4-6',\n      max_tokens: 1200,\n      system: sys,\n      messages: [{ role: 'user', content: prompt }],\n    }),\n  });\n  const d = await r.json();\n  if (!r.ok) throw new Error(d.error?.message || 'Erreur Anthropic');\n  return (d.content || []).map((b) => b.text || '').join('');\n}\nasync function callOpenAICompat(url, model, key, sys, prompt) {\n  const r = await fetch(url, {\n    method: 'POST',\n    headers: { 'content-type': 'application/json', authorization: 'Bearer ' + key },\n    body: JSON.stringify({\n      model,\n      messages: [\n        { role: 'system', content: sys },\n        { role: 'user', content: prompt },\n      ],\n    }),\n  });\n  const d = await r.json();\n  if (!r.ok) throw new Error(d.error?.message || 'Erreur API');\n  return d.choices?.[0]?.message?.content || '';\n}\nasync function callGemini(key, sys, prompt) {\n  const r = await fetch(\n    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' +\n      encodeURIComponent(key),\n    {\n      method: 'POST',\n      headers: { 'content-type': 'application/json' },\n      body: JSON.stringify({\n        system_instruction: { parts: [{ text: sys }] },\n        contents: [{ parts: [{ text: prompt }] }],\n      }),\n    }\n  );\n  const d = await r.json();\n  if (!r.ok) throw new Error(d.error?.message || 'Erreur Gemini');\n  return (d.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');\n}\nasync function callProviderAPI(provider, key, sys, prompt) {\n  if (provider === 'free') return callFree(sys, prompt);\n  if (provider === 'anthropic') return callAnthropic(key, sys, prompt);\n  if (provider === 'gemini') return callGemini(key, sys, prompt);\n  const cfg = OPENAI_COMPAT[provider];\n  if (!cfg) throw new Error('Fournisseur inconnu');\n  return callOpenAICompat(cfg.url, cfg.model, key, sys, prompt);\n}\n\nfunction publicSettings(u) {\n  return {\n    provider: u.provider,\n    hasKey: Object.fromEntries(PROVIDERS.map((p) => [p, !!u.apiKeys[p]])),\n  };\n}\n\n// ---------- petit serveur HTTP fait main (routes + JSON + CORS, sans framework) ----------\nfunction send(res, status, obj) {\n  const body = JSON.stringify(obj);\n  res.writeHead(status, {\n    'content-type': 'application/json; charset=utf-8',\n    'access-control-allow-origin': '*',\n    'access-control-allow-headers': 'content-type, authorization',\n    'access-control-allow-methods': 'GET, POST, OPTIONS',\n  });\n  res.end(body);\n}\nfunction readJSON(req) {\n  return new Promise((resolve) => {\n    let data = '';\n    req.on('data', (c) => (data += c));\n    req.on('end', () => {\n      try {\n        resolve(JSON.parse(data || '{}'));\n      } catch {\n        resolve({});\n      }\n    });\n  });\n}\nfunction getUserFromAuth(req) {\n  const h = req.headers['authorization'] || '';\n  const token = h.startsWith('Bearer ') ? h.slice(7) : null;\n  if (!token) return null;\n  const payload = verifyToken(token);\n  if (!payload) return null;\n  return db.users.find((u) => u.id === payload.id) || null;\n}\n\nconst server = http.createServer(async (req, res) => {\n  if (req.method === 'OPTIONS') {\n    res.writeHead(204, {\n      'access-control-allow-origin': '*',\n      'access-control-allow-headers': 'content-type, authorization',\n      'access-control-allow-methods': 'GET, POST, OPTIONS',\n    });\n    res.end();\n    return;\n  }\n\n  const url = new URL(req.url, 'http://internal');\n  const p = url.pathname;\n\n  try {\n    if (p === '/' && req.method === 'GET') {\n      res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });\n      res.end('Nexia Gui server OK');\n      return;\n    }\n\n    if (p === '/api/register' && req.method === 'POST') {\n      const b = await readJSON(req);\n      const email = (b.email || '').trim().toLowerCase();\n      const password = b.password || '';\n      if (!email || password.length < 6) {\n        return send(res, 400, { error: 'E-mail invalide ou mot de passe trop court (6 caract\u00e8res min).' });\n      }\n      if (findUser(email)) return send(res, 409, { error: 'Ce compte existe d\u00e9j\u00e0.' });\n      const user = {\n        id: crypto.randomUUID(),\n        email,\n        passHash: hashPassword(password),\n        provider: 'free',\n        apiKeys: {},\n        requestCount: 0,\n      };\n      db.users.push(user);\n      saveDB();\n      return send(res, 200, { token: signToken({ id: user.id, email: user.email }), email: user.email });\n    }\n\n    if (p === '/api/login' && req.method === 'POST') {\n      const b = await readJSON(req);\n      const email = (b.email || '').trim().toLowerCase();\n      const user = findUser(email);\n      if (!user || !verifyPassword(b.password || '', user.passHash)) {\n        return send(res, 401, { error: 'Identifiants incorrects.' });\n      }\n      return send(res, 200, { token: signToken({ id: user.id, email: user.email }), email: user.email });\n    }\n\n    if (p === '/api/me' && req.method === 'GET') {\n      const u = getUserFromAuth(req);\n      if (!u) return send(res, 401, { error: 'Non connect\u00e9.' });\n      return send(res, 200, { email: u.email, requestCount: u.requestCount, ...publicSettings(u) });\n    }\n\n    if (p === '/api/settings' && req.method === 'GET') {\n      const u = getUserFromAuth(req);\n      if (!u) return send(res, 401, { error: 'Non connect\u00e9.' });\n      return send(res, 200, publicSettings(u));\n    }\n\n    if (p === '/api/settings' && req.method === 'POST') {\n      const u = getUserFromAuth(req);\n      if (!u) return send(res, 401, { error: 'Non connect\u00e9.' });\n      const b = await readJSON(req);\n      if (b.provider && PROVIDERS.includes(b.provider)) u.provider = b.provider;\n      if (typeof b.apiKey === 'string' && b.apiKey.trim() && b.provider !== 'free') {\n        u.apiKeys[b.provider] = encrypt(b.apiKey.trim());\n      }\n      saveDB();\n      return send(res, 200, { ok: true, ...publicSettings(u) });\n    }\n\n    if (p === '/api/generate' && req.method === 'POST') {\n      const u = getUserFromAuth(req);\n      if (!u) return send(res, 401, { error: 'Non connect\u00e9.' });\n      const b = await readJSON(req);\n      const prompt = (b.prompt || '').trim();\n      if (!prompt) return send(res, 400, { error: 'D\u00e9cris ce que Nexia doit faire.' });\n      const provider = u.provider || 'free';\n      let key = '';\n      if (provider !== 'free') {\n        if (!u.apiKeys[provider]) {\n          return send(res, 400, { error: 'Ajoute une cl\u00e9 API pour ce fournisseur dans Param\u00e8tres.' });\n        }\n        key = decrypt(u.apiKeys[provider]);\n      }\n      const sys =\n        'Tu es un agent qui agit directement dans Roblox Studio. R\u00e9ponds UNIQUEMENT avec un script Lua valide ' +\n        \"(utilisant Instance.new, game, workspace, etc.) qui r\u00e9alise l'action demand\u00e9e quand il est ex\u00e9cut\u00e9. \" +\n        \"Pas d'explication, pas de balises markdown, uniquement du code Lua.\";\n      try {\n        const code = await callProviderAPI(provider, key, sys, prompt);\n        u.requestCount++;\n        saveDB();\n        return send(res, 200, { code, requestCount: u.requestCount });\n      } catch (e) {\n        return send(res, 502, { error: e.message || 'Erreur du fournisseur.' });\n      }\n    }\n\n    send(res, 404, { error: 'Route inconnue.' });\n  } catch (e) {\n    send(res, 500, { error: e.message || 'Erreur serveur.' });\n  }\n});\n\nserver.listen(PORT, () => console.log('Nexia Gui server listening on port ' + PORT));\n";
+</script>
+</body></html>
